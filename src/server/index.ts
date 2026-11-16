@@ -6,6 +6,7 @@
  * dsh-plugin 宿主入口：宿主 webServer 服务就绪后挂载插件中心的 HTTP 路由。
  * 浏览器 bundle（src/client）通过这些同源路由在应用内执行真正的安装。
  */
+import { authenticatedWebServer } from './web-route-auth.mjs'
 import { readProfileArg, type LoaderHandle } from './services/install/install.ts'
 import { mountPluginHubRoutes, type WebServerService } from './http/routes.ts'
 
@@ -33,6 +34,6 @@ interface HostContext {
 export function apply(ctx: HostContext, config: Config = {}): void {
   const profile = config.profile ?? readProfileArg('web')
   ctx.inject(['webServer'], (host) => {
-    host.effect(() => mountPluginHubRoutes(host.webServer, profile, host.loader), 'dsh-plugin: http routes')
+    host.effect(() => mountPluginHubRoutes(authenticatedWebServer(host, host.webServer), profile, host.loader), 'dsh-plugin: http routes')
   })
 }

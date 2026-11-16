@@ -1,3 +1,12 @@
+# Русский fork для workstation
+
+Репозиторий: https://github.com/bondiano/dsh-plugin-hub-ru. В этом fork сохранены
+готовые server/client bundles и доступные исходники. Проверка перед упаковкой:
+`npm run check:distribution`; установка зависимостей для неё не требуется.
+Полная пересборка из TypeScript пока требует отсутствующих в исходном snapshot
+`tsconfig*` и `scripts/tools`; приведённые ниже upstream-команды разработки
+относятся к полному upstream checkout. Upstream license и attribution сохранены.
+
 > **Русская локализация.** Это форк [`dsh-plugin@2.3.9`](https://www.npmjs.com/package/dsh-plugin) (DSH Plugin Hub, MIT) с русским интерфейсом и переключателем языков **en → ru → zh**. Что именно изменено, как установить в профиль и как обновляться — в [NOTES.md](NOTES.md).
 
 <div align="center">
