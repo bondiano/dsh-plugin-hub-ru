@@ -41,5 +41,5 @@ dsh plugin --profile desktop add /Users/bondiano/Documents/deepseek-harness/defa
 
 ```
 node --check client/client.js     # синтаксис бандла
-node scripts/smoke.mjs            # регистрация словаря и выбор языка
+node scripts/smoke.ts            # регистрация словаря и выбор языка
 ```
