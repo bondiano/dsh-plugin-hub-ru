@@ -56,7 +56,7 @@
     "verify:release": "node scripts/tools/verify-release.mjs",
     "prepublishOnly": "npm run check:distribution",
     "prepack": "npm run check:distribution",
-    "check:distribution": "node --check lib/index.js && node scripts/smoke.mjs && node --test test/*.test.mjs"
+    "check:distribution": "node --check lib/index.js && node scripts/smoke.mjs && node --test test/*.test.ts"
   },
   "dependencies": {
     "xstate": "5.33.4"

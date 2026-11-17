@@ -6,7 +6,7 @@
  * dsh-plugin 宿主入口：宿主 webServer 服务就绪后挂载插件中心的 HTTP 路由。
  * 浏览器 bundle（src/client）通过这些同源路由在应用内执行真正的安装。
  */
-import { authenticatedWebServer } from './web-route-auth.mjs'
+import { authenticatedWebServer, type WebAuthContext } from './web-route-auth.ts'
 import { readProfileArg, type LoaderHandle } from './services/install/install.ts'
 import { mountPluginHubRoutes, type WebServerService } from './http/routes.ts'
 
@@ -18,7 +18,7 @@ export interface Config {
 }
 
 /** 本插件用到的 cordis 宿主上下文子集。 */
-interface HostContext {
+interface HostContext extends WebAuthContext {
   webServer: WebServerService
   /** 运行中 loader：卸载成功后主动移除条目、立即生效（宿主未提供时卸载仍需重启） */
   loader?: LoaderHandle

@@ -5,10 +5,11 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
+    "allowJs": true,
     "noEmit": true,
     "types": ["node"],
     "strict": true,
     "skipLibCheck": true
   },
-  "include": ["tests", "src/server"]
+  "include": ["tests", "test", "src/server"]
 }
