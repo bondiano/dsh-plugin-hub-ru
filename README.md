@@ -227,7 +227,6 @@ dsh plugin --profile web remove dsh-plugin
 ```bash
 npm ci
 npm run check    # typecheck + test + build
-npm run reload   # 重启本机宿主，加载新的客户端 bundle
 ```
 
 开发需 Node.js >= 22.6（`npm test` 依赖原生 type stripping）。分层与目录结构见 [docs/architecture.md](docs/architecture.md)，日常开发流程与发布见 [docs/development.md](docs/development.md)，提交规范与 PR 流程见 [CONTRIBUTING.md](CONTRIBUTING.md)。

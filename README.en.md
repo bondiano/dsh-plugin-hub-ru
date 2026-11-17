@@ -216,7 +216,6 @@ This repository holds the full source and can be built, tested and debugged loca
 ```bash
 npm ci
 npm run check    # typecheck + test + build
-npm run reload   # restart the local host and load the new client bundle
 ```
 
 Development requires Node.js >= 22.6 (`npm test` relies on native type stripping). See [docs/architecture.md](docs/architecture.md) for the layering and directory structure, [docs/development.md](docs/development.md) for the day-to-day workflow and release steps, and [CONTRIBUTING.md](CONTRIBUTING.md) for commit and PR conventions.
