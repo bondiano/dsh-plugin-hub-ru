@@ -58,7 +58,9 @@
     "prepack": "npm run check:distribution",
     "check:distribution": "node --check lib/index.js && node scripts/smoke.mjs && node --test test/*.test.mjs"
   },
-  "dependencies": {},
+  "dependencies": {
+    "xstate": "5.33.4"
+  },
   "peerDependencies": {
     "@deepseek-ai/cordis": "4.0.1"
   },

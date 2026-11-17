@@ -19,6 +19,9 @@ export interface InstallResult {
   spawn?: { file: string; args: string[]; cwd: string; shell: boolean }
 }
 
+/** 安装任务状态：与 task.machine.ts 的 installTask 状态机状态集一一对应（编译期穷尽性检查在那边）。 */
+export type InstallTaskStatus = 'pending' | 'running' | 'done' | 'failed' | 'cancelled'
+
 export interface InstallTask {
   id: number
   /** 操作目标：npm 包名（安装、更新、卸载一致），冲突/恢复时需要展示给用户 */
@@ -35,7 +38,7 @@ export interface InstallTask {
    *  任务输出行与系统日志据此溯源「从哪个入口发起」；目录插件安装无此字段。 */
   installChannel?: 'npm'
   /** 队列语义：pending 排队中 / running 执行中 / done / failed / cancelled（用户取消） */
-  status: 'pending' | 'running' | 'done' | 'failed' | 'cancelled'
+  status: InstallTaskStatus
   timedOut: boolean
   exitCode: number | null
   /** 0-100 估算进度：解析 pnpm 的 `Progress: resolved…` 输出；没有进度行时按阶段行估算 */

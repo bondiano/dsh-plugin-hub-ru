@@ -28,6 +28,7 @@ import { dshTooOldMarker } from './dsh-compat.ts'
 import { OutputDecoder } from './decode-output.ts'
 import { profileYamlMarker } from './profile-yaml.ts'
 import { runtimeExecPath } from '../runtime-exec.ts'
+import { nextInstallTaskStatus } from './task.machine.ts'
 
 /** 内存任务注册表，按任务 id 索引。 */
 const tasks = new Map<number, InstallTask>()
@@ -121,12 +122,12 @@ export function cancelTask(id: number): boolean {
   if (task.status === 'pending') {
     const index = queue.findIndex((it) => it.task === task)
     if (index >= 0) queue.splice(index, 1)
-    task.status = 'cancelled'
+    task.status = nextInstallTaskStatus(task.status, 'CANCEL')
     pushLine(task, '[cancelled]')
     return true
   }
   if (task.status === 'running') {
-    task.status = 'cancelled'
+    task.status = nextInstallTaskStatus(task.status, 'CANCEL')
     pushLine(task, '[cancelled]')
     const child = runningChildren.get(id)
     if (child) stopChild(child)
@@ -357,14 +358,14 @@ function pumpQueue(): void {
   const item = queue.find((it) => it.task.status === 'pending')
   if (!item) return
   const { task, options } = item
-  task.status = 'running'
+  task.status = nextInstallTaskStatus(task.status, 'START')
   void runPluginMutation({ ...options, task })
     .catch((error) => {
       // runPluginMutation 的恢复路径（如 allowBuilds 写回 pnpm-workspace.yaml）
       // 可能抛出；落到 failed 终态并留痕，否则该 Promise 链成为未处理 rejection
       //（Node >= 15 默认直接终止进程），而队列自身却在 finally 里继续 pump。
       if (task.status !== 'cancelled') {
-        task.status = 'failed'
+        task.status = nextInstallTaskStatus(task.status, 'FAIL')
         task.exitCode = null
         task.progress = 0
         pushLine(task, `[internal] ${error instanceof Error ? error.message : String(error)}`)
@@ -480,7 +481,7 @@ function spawnMutation(options: {
       if (invocation.file === 'dsh' && !commandOnPath('dsh', env)) {
         const detail = '[dsh-missing] the dsh CLI was not found on this machine (DeepSeek Harness not installed, or dsh not on the PATH)'
         if (task) {
-          task.status = 'failed'
+          task.status = nextInstallTaskStatus(task.status, 'FAIL')
           task.exitCode = null
           task.progress = 0
           pushLine(task, detail)
@@ -494,7 +495,7 @@ function spawnMutation(options: {
         const gitMissing = gitMissingDetail(target, env)
         if (gitMissing !== null) {
           if (task) {
-            task.status = 'failed'
+            task.status = nextInstallTaskStatus(task.status, 'FAIL')
             task.exitCode = null
             task.progress = 0
             pushLine(task, gitMissing)
@@ -525,7 +526,7 @@ function spawnMutation(options: {
       // 宿主自身入口起不来 → 补标记，前端据此归因
       const marker = hostSpawnMarker(invocation, error)
       if (task) {
-        task.status = 'failed'
+        task.status = nextInstallTaskStatus(task.status, 'FAIL')
         task.exitCode = null
         pushLine(task, `[error] ${detail}`)
         if (marker !== null) pushLine(task, marker)
@@ -595,7 +596,7 @@ function spawnMutation(options: {
         forceSettle = setTimeout(() => {
           if (settled) return
           if (task && task.status !== 'cancelled') {
-            task.status = 'failed'
+            task.status = nextInstallTaskStatus(task.status, 'FAIL')
             task.exitCode = null
             task.timedOut = true
             pushLine(task, '[timed out]')
@@ -609,7 +610,7 @@ function spawnMutation(options: {
       // 同同步抛出那条路径：宿主自身入口起不来 → 补标记
       const marker = hostSpawnMarker(invocation, error)
       if (task && task.status !== 'cancelled') {
-        task.status = 'failed'
+        task.status = nextInstallTaskStatus(task.status, 'FAIL')
         task.exitCode = null
         pushLine(task, `[error] ${error.message}`)
         if (marker !== null) pushLine(task, marker)
@@ -673,7 +674,7 @@ function spawnMutation(options: {
       task.exitCode = result.exitCode
       task.timedOut = result.timedOut
       if (task.status !== 'cancelled') {
-        task.status = result.timedOut || result.exitCode !== 0 ? 'failed' : 'done'
+        task.status = nextInstallTaskStatus(task.status, result.timedOut || result.exitCode !== 0 ? 'FAIL' : 'DONE')
         if (task.status === 'done') {
           task.progress = 100
           // 实际装上的版本：目录版本可能滞后，客户端账本必须记这个值，否则「有更新」永久失真
@@ -957,7 +958,7 @@ export async function runPluginMutation(options: {
       if (key !== null) {
         if (options.task) {
           // 首次尝试已把任务标为失败；重置它，让重试重新以 running 任务形式流式输出进度。
-          options.task.status = 'running'
+          options.task.status = nextInstallTaskStatus(options.task.status, 'RETRY')
           options.task.exitCode = null
           pushLine(options.task, `[allow build] ${key}`)
         }
@@ -974,7 +975,7 @@ export async function runPluginMutation(options: {
       if (keys.length === 0 && githubRepoOf(options.target) === null) keys.push(options.target)
       if (keys.length > 0) {
         if (options.task) {
-          options.task.status = 'running'
+          options.task.status = nextInstallTaskStatus(options.task.status, 'RETRY')
           options.task.exitCode = null
           pushLine(options.task, `[allow build] ${keys.join(', ')}`)
         }
@@ -994,7 +995,7 @@ export async function runPluginMutation(options: {
       clearPendingRestart(options.displayTarget ?? options.target)
       const detail = `[packaging] ${verified.name}: declared file missing: ${verified.missing} (the published package is missing this file — report it to the author)`
       if (options.task && options.task.status !== 'cancelled') {
-        options.task.status = 'failed'
+        options.task.status = nextInstallTaskStatus(options.task.status, 'FAIL')
         options.task.exitCode = null
         options.task.progress = 0
         pushLine(options.task, detail)
