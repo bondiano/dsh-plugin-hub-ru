@@ -40,12 +40,8 @@
     "open-source"
   ],
   "scripts": {
-    "build": "npm run build:server && npm run build:client",
+    "build": "npm run build:server",
     "build:server": "rm -rf lib && tsc -p tsconfig.server.json",
-    "build:client": "tsdown && node scripts/tools/normalize-client-banner.mjs",
-    "readme:stats": "node scripts/tools/sync-readme-stats.mjs",
-    "reload": "bash scripts/run/restart-dev.sh",
-    "dev": "bash scripts/run/restart-dev.sh",
     "test": "node --test",
     "test:watch": "node --test --watch",
     "typecheck": "npm run typecheck:client && npm run typecheck:server && npm run typecheck:test",
@@ -53,7 +49,6 @@
     "typecheck:server": "tsc -p tsconfig.server.json --noEmit",
     "typecheck:test": "tsc -p tsconfig.test.json --noEmit",
     "check": "npm run typecheck && npm run test && npm run build",
-    "verify:release": "node scripts/tools/verify-release.mjs",
     "prepublishOnly": "npm run check:distribution",
     "prepack": "npm run check:distribution",
     "check:distribution": "node --check lib/index.js && node scripts/smoke.ts && node --test test/*.test.ts"
