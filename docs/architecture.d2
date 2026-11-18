@@ -1,0 +1,33 @@
+direction: down
+
+# dsh-plugin-hub-ru: in-app marketplace UI backed by same-origin routes and real dsh CLI installs
+
+hub_user: "DSH web user\n[actor, Settings section]"
+mf_client: "PluginHubSection\n[React 18, settings.section slot, zh/en/ru dicts]"
+host_apply: "src/server/index.ts apply\n[Cordis, ctx.inject webServer]"
+routes: "mountPluginHubRoutes\n[/dsh-plugin-hub/* same-origin API]"
+ex_catalog: "api.dsh-plugin.org\n[plugins.zh/en.json + stats.json]"
+db_cachefile: "catalog cache\n[profiles/<p>/cache/catalog-*.json, 1 h TTL]"
+qu_taskqueue: "task-queue.ts\n[in-memory FIFO, one mutation at a time]"
+dag_taskmachine: "installTaskMachine\n[task status transitions]"
+xstate_dep: "xstate 5.33.4\n[createMachine + transition]"
+ops_dshcli: "dsh plugin --profile <p> add|remove|update\n[child_process spawn, forks pnpm]"
+ex_npm: "registry.npmjs.org\n[package metadata verify, node:https]"
+ex_github: "github.com\n[git install channel + reachability probe]"
+db_profile: "profile dir\n[DSH_HOME/profiles/<p>: allowBuilds, operation log]"
+loader: "LoaderHandle\n[live entry removal on uninstall]"
+
+hub_user -> mf_client: "opens plugin marketplace"
+mf_client -> routes: "fetch + task polling"
+host_apply -> routes: "mounts on webServer"
+routes -> db_cachefile: "read and write TTL cache"
+routes -> ex_catalog: "curl subprocess via proxy"
+routes -> qu_taskqueue: "install and uninstall requests"
+qu_taskqueue -> dag_taskmachine: "nextInstallTaskStatus on every write"
+dag_taskmachine -> xstate_dep: "state table"
+qu_taskqueue -> ops_dshcli: "spawn per task, stream output"
+ops_dshcli -> ex_npm: "pnpm resolves npm packages"
+ops_dshcli -> ex_github: "git+https targets"
+routes -> ex_npm: "release age + repo ownership check"
+qu_taskqueue -> db_profile: "allowBuilds writes, logs, pending restart"
+qu_taskqueue -> loader: "removeLoadedEntry after unload"
